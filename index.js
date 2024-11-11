@@ -83,6 +83,12 @@ class NDHUCrawler {
         return regex.test(url);
     }
 
+    isAdBannerPage(url) {
+        // https://am.ndhu.edu.tw/app/index.php?Plugin=mobile&Action=mobileads&ad=5472
+        const regex = /^https:\/\/am\.ndhu\.edu\.tw\/app\/index\.php\?Plugin=mobile&Action=mobileads&ad=\d+$/;
+        return regex.test(url);
+    }
+
 
     generateSafeFilename(url) {
         const urlObj = new URL(url);
@@ -143,6 +149,10 @@ class NDHUCrawler {
         if (this.is16ModulePage(url)) {
             console.log(`Skip 16 模組頁面: ${url}`);
             return;
+        }
+
+        if (this.isAdBannerPage(url)) {
+            directoryPath = path.join(directoryPath, '廣告橫幅');
         }
 
         // 加入頁面專屬目錄
@@ -270,7 +280,7 @@ class NDHUCrawler {
             await page.setDefaultNavigationTimeout(30000);
             await page.goto(url, { waitUntil: 'networkidle0' });
 
-            if (this.is403ModulePage(url) || this.is406ModulePage(url) || this.is132ModulePage(url) || this.isSingleImagePage(url) || this.is16ModulePage(url)) {
+            if (this.is403ModulePage(url) || this.is406ModulePage(url) || this.is132ModulePage(url) || this.isSingleImagePage(url) || this.is16ModulePage(url) || this.isAdBannerPage(url)) {
                 await this.handle403ModulePage(page);
             }
 
