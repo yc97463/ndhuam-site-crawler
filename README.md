@@ -30,6 +30,24 @@ Run the script
 npm run go
 ```
 
-or pack the archived files into a tar.gz file
+### Archive the files
+
+pack the archived files into a tar.gz file
 ```bash
 tar -czvf archive.tar.gz ndhu_am_archive/
+```
+
+then use gusite save to Google Cloud Bucket
+```bash
+gsutil cp archive.tar.gz gs://ndhuam-crawler/
+```
+
+if you want to use the service account to access the bucket, you need to grant the permission to the service account
+
+```bash
+gcloud projects add-iam-policy-binding csc-vm \
+  --member="serviceAccount:YOUR-SERVICE-ACCOUNT@YOUR-PROJ-IAM" \
+  --role="roles/storage.objectAdmin" \
+  --condition=None
+
+```
