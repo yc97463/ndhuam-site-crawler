@@ -139,9 +139,10 @@ class NDHUCrawler {
             directoryPath = path.join(directoryPath, '線上相簿', '單張圖片');
         }
 
-        // if is 16 module page, skip it
+        // if is 16 module page, skip to save it.
         if (this.is16ModulePage(url)) {
-            return directoryPath;
+            console.log(`Skip 16 模組頁面: ${url}`);
+            return;
         }
 
         // 加入頁面專屬目錄
