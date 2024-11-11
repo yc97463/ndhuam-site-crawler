@@ -4,6 +4,8 @@ const path = require('path');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+// 設定預設編碼
+process.env.LANG = 'zh_TW.UTF-8';
 class NDHUCrawler {
     constructor() {
         this.baseUrl = 'https://am.ndhu.edu.tw/';
@@ -26,13 +28,18 @@ class NDHUCrawler {
 
         this.browser = await puppeteer.launch({
             headless: 'new',
-            args: ['--no-sandbox']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--lang=zh-TW',
+                '--disable-dev-shm-usage'
+            ]
         });
     }
 
     async writeLog(message) {
         const timestamp = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
-        const logMessage = `[${timestamp}] ${message}\n`;
+        const logMessage = Buffer.from(`[${timestamp}] ${message}\n`, 'utf8');
         console.log(message);
         await fs.appendFile(this.logFile, logMessage).catch(err => console.error('寫入日誌失敗:', err));
     }
@@ -75,7 +82,7 @@ class NDHUCrawler {
         const regex = /^https:\/\/am\.ndhu\.edu\.tw\/p\/16-\d+-\d+\.php\?Lang=zh-tw$/;
         return regex.test(url);
     }
-        
+
 
     generateSafeFilename(url) {
         const urlObj = new URL(url);
@@ -85,7 +92,14 @@ class NDHUCrawler {
     }
 
     sanitizeTitle(title) {
-        return title.trim().replace(/[\/\\\?\*\|":<>]/g, '_');
+        // 移除不可見字符和控制字符
+        title = title.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+        // 移除特殊檔案系統字符，但保留中文字符
+        title = title.replace(/[\/\\\?\*\|":<>]/g, '_');
+        // 移除開頭和結尾的空白字符
+        title = title.trim();
+        // 如果標題為空，返回預設值
+        return title || 'untitled';
     }
 
     async extractBreadcrumb($) {
@@ -214,7 +228,9 @@ class NDHUCrawler {
                     bottom: '20px',
                     left: '20px',
                     right: '20px'
-                }
+                },
+                // 字體渲染問題，禁用字體子像素定位
+                args: ['--disable-font-subpixel-positioning']
             });
 
             console.log(`網頁存為 PDF 成功: ${filename}`);
@@ -238,6 +254,16 @@ class NDHUCrawler {
             await page.setViewport({
                 width: 1920,
                 height: 1080
+            });
+
+            // 設定頁面編碼
+            await page.setExtraHTTPHeaders({
+                'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7'
+            });
+
+            // 設定頁面內容編碼
+            await page.evaluateOnNewDocument(() => {
+                document.charset = 'UTF-8';
             });
 
             await page.setDefaultNavigationTimeout(30000);
