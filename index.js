@@ -19,6 +19,9 @@ class NDHUCrawler {
 
     async initialize() {
         try {
+            // check if the basic dir exist, if exist, delete it
+            await fs.rmdir(this.baseDir, { recursive: true });
+
             await fs.mkdir(this.baseDir, { recursive: true });
             // 初始化 log 檔案
             await fs.writeFile(this.logFile, `Crawler started at ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}\n`);
