@@ -51,3 +51,11 @@ gcloud projects add-iam-policy-binding csc-vm \
   --condition=None
 
 ```
+
+### Move the files
+
+if you want to move all the pdf files to a single directory, you can use the following command
+
+```bash
+find /path/ -type f -name "*.pdf" ! -path "/path/PDFFiles/*" -exec cp -f {} ~/path/PDFFiles/ \;
+```
